@@ -1,16 +1,26 @@
 package com.micro.user.service.UserService.services.impl;
 
+import com.micro.user.service.UserService.entities.Hotel;
+import com.micro.user.service.UserService.entities.Rating;
 import com.micro.user.service.UserService.entities.User;
 import com.micro.user.service.UserService.exceptions.ResourceNotFound;
+import com.micro.user.service.UserService.external.services.HotelService;
 import com.micro.user.service.UserService.repositories.UserRepo;
 import com.micro.user.service.UserService.services.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import javax.xml.transform.OutputKeys;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -20,6 +30,14 @@ public class UserServiceImpl implements UserService {
     public UserServiceImpl(UserRepo userRepo){
         this.userRepo = userRepo;
     }
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @Autowired
+    private HotelService hotelService;
+
+    private Logger logger = (Logger) LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Override
     public ResponseEntity<User> saveUser(User user) {
@@ -36,7 +54,25 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserById(String userId) {
-        return userRepo.findById(userId).orElseThrow(() -> new ResourceNotFound("User with given Id is not found on server!!"+userId));
+        User user = userRepo.findById(userId).orElseThrow(() -> new ResourceNotFound("User with given Id is not found on server!!"+userId));
+
+        Rating[] ratingsOfUser = restTemplate.getForObject("http://RATING-SERVICE/ratings/users/"+user.getUserId(), Rating[].class);
+        logger.info("Ratings received: {}", ratingsOfUser);
+
+        List<Rating> ratings = Arrays.stream(ratingsOfUser).toList();
+
+        List<Rating>ratingList = ratings.stream().map(rating -> {
+
+            //ResponseEntity<Hotel> forEntity = restTemplate.getForEntity("http://HOTEL-SERVICE/hotels/"+rating.getHotelId(), Hotel.class);
+            Hotel hotel = hotelService.getHotel(rating.getHotelId());
+//            logger.info("response status code: {}",forEntity.getStatusCode());
+            rating.setHotel(hotel);
+            return rating;
+        }).collect(Collectors.toList());
+
+        user.setRatings(ratingList);
+
+        return user;
     }
 
     @Override

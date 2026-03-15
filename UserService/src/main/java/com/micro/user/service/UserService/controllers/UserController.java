@@ -1,6 +1,7 @@
 package com.micro.user.service.UserService.controllers;
 
 import com.micro.user.service.UserService.entities.User;
+import com.micro.user.service.UserService.services.UserService;
 import com.micro.user.service.UserService.services.impl.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,34 +16,34 @@ import java.util.List;
 public class UserController {
 
     @Autowired
-    public UserServiceImpl userServiceImpl;
+    public UserService userService;
 
     @GetMapping
     public List<User> getAllUsers(){
-        return userServiceImpl.getAllUsers();
+        return userService.getAllUsers();
     }
 
     @PostMapping
     public ResponseEntity<User> createUSer(@RequestBody User user){
-        userServiceImpl.saveUser(user);
+        userService.saveUser(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 
     @GetMapping("/{userId}")
     public User getUserById(@PathVariable String userId){
-        User user = userServiceImpl.getUserById(userId);
+        User user = userService.getUserById(userId);
         return user;
     }
 
     @PutMapping
     public ResponseEntity<User> updateUser(@RequestBody User user, @PathVariable String userId){
-        userServiceImpl.updateUser(user,userId);
+        userService.updateUser(user, userId);
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
     @DeleteMapping
     public ResponseEntity<User> deleteUser(@PathVariable String userId){
-        userServiceImpl.deleteUser(userId);
+        userService.deleteUser(userId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }
