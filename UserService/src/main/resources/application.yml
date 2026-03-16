@@ -14,12 +14,12 @@ spring:
   config:
     import: "configserver:http://localhost:8085"
 
-
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate.ddl-auto: update
   profiles:
-    active: dev
+    active: default
+
 
 
 #eureka:
