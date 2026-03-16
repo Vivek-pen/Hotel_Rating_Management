@@ -11,15 +11,22 @@ spring:
 
     driver-class-name: org.postgresql.Driver
 
+  config:
+    import: "configserver:http://localhost:8085"
+
+
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate.ddl-auto: update
+  profiles:
+    active: dev
 
-eureka:
-  client:
-    fetch-registry: true
-    register-with-eureka: true
-    service-url:
-      defaultZone: http://localhost:8761/eureka
-  instance:
-    prefer-ip-address: true
+
+#eureka:
+#  client:
+#    fetch-registry: true
+#    register-with-eureka: true
+#    service-url:
+#      defaultZone: http://localhost:8761/eureka
+#  instance:
+#    prefer-ip-address: true
