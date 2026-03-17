@@ -4,6 +4,8 @@ import com.micro.user.service.UserService.entities.User;
 import com.micro.user.service.UserService.services.UserService;
 import com.micro.user.service.UserService.services.impl.UserServiceImpl;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,11 +23,6 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    private final Logger logger;
-    @Autowired
-    public UserController(Logger logger){
-        this.logger = logger;
-    }
 
     @GetMapping
     public List<User> getAllUsers(){
@@ -37,24 +34,14 @@ public class UserController {
         userService.saveUser(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
-
+    int count = 0;
     @GetMapping("/{userId}")
-    @CircuitBreaker(name = "ratingHotelBreaker",fallbackMethod = "ratingHotelFallback")
+//    @CircuitBreaker(name = "ratingHotelBreaker",fallbackMethod = "ratingHotelFallback")
+//    @Retry(name = "ratingHotelService",fallbackMethod = "ratingHotelFallback")
     public ResponseEntity<User> getUserById(@PathVariable String userId){
         User user = userService.getUserById(userId);
+        count++;
         return ResponseEntity.ok(user);
-    }
-
-    //creating fallbackmthod for circuit breaker
-    public ResponseEntity<User> ratingHotelFallback(String userId, Exception ex){
-        logger.info("Fallback is executed because service is down : "+ex.getMessage());
-        User user = User.builder()
-                .email("dummy@gmail.com")
-                .name("Dummy")
-                .about("Dummy because service is down")
-                .userId("141234")
-                .build();
-        return new ResponseEntity<>(user,HttpStatus.OK);
     }
 
     @PutMapping

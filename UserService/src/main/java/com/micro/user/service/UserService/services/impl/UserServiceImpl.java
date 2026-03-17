@@ -7,6 +7,7 @@ import com.micro.user.service.UserService.exceptions.ResourceNotFound;
 import com.micro.user.service.UserService.external.services.HotelService;
 import com.micro.user.service.UserService.repositories.UserRepo;
 import com.micro.user.service.UserService.services.UserService;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @RateLimiter(name = "userRateLimiter", fallbackMethod = "ratingHotelFallback")
     public User getUserById(String userId) {
         User user = userRepo.findById(userId).orElseThrow(() -> new ResourceNotFound("User with given Id is not found on server!!"+userId));
 
@@ -73,6 +75,17 @@ public class UserServiceImpl implements UserService {
         user.setRatings(ratingList);
 
         return user;
+    }
+
+    //creating fallbackmethod for circuit breaker
+    public ResponseEntity<User> ratingHotelFallback(String userId, Exception ex){
+        User user = User.builder()
+                .email("dummy@gmail.com")
+                .name("Dummy")
+                .about("Dummy because service is down")
+                .userId("141234")
+                .build();
+        return new ResponseEntity<>(user,HttpStatus.OK);
     }
 
     @Override
