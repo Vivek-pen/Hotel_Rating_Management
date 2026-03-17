@@ -3,12 +3,15 @@ package com.micro.user.service.UserService.controllers;
 import com.micro.user.service.UserService.entities.User;
 import com.micro.user.service.UserService.services.UserService;
 import com.micro.user.service.UserService.services.impl.UserServiceImpl;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.slf4j.Logger;
+
 
 
 @RestController
@@ -16,7 +19,13 @@ import java.util.List;
 public class UserController {
 
     @Autowired
-    public UserService userService;
+    private UserService userService;
+
+    private final Logger logger;
+    @Autowired
+    public UserController(Logger logger){
+        this.logger = logger;
+    }
 
     @GetMapping
     public List<User> getAllUsers(){
@@ -30,9 +39,22 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public User getUserById(@PathVariable String userId){
+    @CircuitBreaker(name = "ratingHotelBreaker",fallbackMethod = "ratingHotelFallback")
+    public ResponseEntity<User> getUserById(@PathVariable String userId){
         User user = userService.getUserById(userId);
-        return user;
+        return ResponseEntity.ok(user);
+    }
+
+    //creating fallbackmthod for circuit breaker
+    public ResponseEntity<User> ratingHotelFallback(String userId, Exception ex){
+        logger.info("Fallback is executed because service is down : "+ex.getMessage());
+        User user = User.builder()
+                .email("dummy@gmail.com")
+                .name("Dummy")
+                .about("Dummy because service is down")
+                .userId("141234")
+                .build();
+        return new ResponseEntity<>(user,HttpStatus.OK);
     }
 
     @PutMapping

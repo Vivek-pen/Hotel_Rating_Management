@@ -2,7 +2,6 @@ package com.microservice.rating.RatingService.service;
 
 
 import com.microservice.rating.RatingService.entities.Rating;
-import org.apache.catalina.User;
 
 import java.util.List;
 

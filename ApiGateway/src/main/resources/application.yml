@@ -4,23 +4,21 @@ spring:
 
   cloud:
     gateway:
-      server:
-        webmvc:
-          routes:
-            - id: USER-SERVICE
-              uri: lb://USER-SERVICE
-              predicates:
-                - Path=/users/**
+      routes:
+        - id: USER-SERVICE
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/users/**
 
-            - id: HOTEL-SERVICE
-              uri: lb://HOTEL-SERVICE
-              predicates:
-                - Path=/hotels/**
+        - id: HOTEL-SERVICE
+          uri: lb://HOTEL-SERVICE
+          predicates:
+            - Path=/hotels/**
 
-            - id: RATING-SERVICE
-              uri: lb://RATING-SERVICE
-              predicates:
-                - Path=/ratings/**
+        - id: RATING-SERVICE
+          uri: lb://RATING-SERVICE
+          predicates:
+            - Path=/ratings/**
 
 
 
